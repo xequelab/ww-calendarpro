@@ -1,0 +1,18 @@
+{
+  "name": "ww-calendar-pro",
+  "version": "1.0.0",
+  "description": "Professional calendar component for WeWeb with month, week, and day views",
+  "main": "ww-config.js",
+  "scripts": {
+    "build": "weweb build",
+    "serve": "weweb serve"
+  },
+  "keywords": [
+    "weweb",
+    "calendar",
+    "appointments",
+    "scheduling"
+  ],
+  "author": "",
+  "license": "MIT"
+}
