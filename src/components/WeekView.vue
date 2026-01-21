@@ -321,7 +321,7 @@ export default {
         }
 
         if (clientName) {
-          html += `<div class="tooltip-info">👤 ${clientName}</div>`;
+          html += `<div class="tooltip-info"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${clientName}</div>`;
         }
 
         if (apt.status) {
@@ -519,6 +519,11 @@ export default {
   align-items: flex-start;
   justify-content: flex-end;
   font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+
+  &:last-child {
+    border-bottom: none;
+  }
 
   @media (max-width: 768px) {
     font-size: 11px;

@@ -30,13 +30,14 @@
           :style="getTimeSlotStyle(slot)"
           @click="handleSlotClick(slot)"
         >
-          <!-- Indicador de horário atual -->
-          <div
-            v-if="isCurrentTimeSlot(slot)"
-            class="current-time-indicator"
-            :style="currentTimeIndicatorStyle"
-          ></div>
         </div>
+
+        <!-- Indicador de horário atual -->
+        <div
+          v-if="isToday && currentTimePosition"
+          class="current-time-indicator"
+          :style="currentTimeIndicatorStyle"
+        ></div>
 
         <!-- Eventos posicionados absolutamente -->
         <div class="events-container">
@@ -51,12 +52,26 @@
             }"
             :style="getAbsoluteEventStyle(event)"
             @click.stop="handleEventClick(event)"
+            @mouseenter="handleTooltipPosition"
+            @mousemove="handleTooltipPosition"
           >
             <div class="custom-tooltip" v-html="getEventTooltipHTML(event)"></div>
-            <div class="event-header">
-              <div class="event-time-range" :style="eventTextStyle(event)">
-                {{ formatTime(event.data.data_inicio) }}
-                <span v-if="event.data.data_fim"> - {{ formatTime(event.data.data_fim) }}</span>
+            <div class="event-content-wrapper">
+              <div class="event-main-info">
+                <div class="event-time-range" :style="eventTextStyle(event)">
+                  {{ formatTime(event.data.data_inicio) }}
+                  <span v-if="event.data.data_fim"> - {{ formatTime(event.data.data_fim) }}</span>
+                </div>
+                <div class="event-title" :style="eventTitleStyle(event)">
+                  {{ getEventTitle(event) }}
+                </div>
+                <div
+                  v-if="event.type === 'appointment' && getEventDetails(event)"
+                  class="event-details"
+                  :style="eventDetailsStyle(event)"
+                >
+                  {{ getEventDetails(event) }}
+                </div>
               </div>
               <div v-if="event.type === 'appointment'" class="event-status">
                 <div v-if="event.data.status === 'pending'" class="status-badge pending">
@@ -75,16 +90,6 @@
                   </svg>
                 </div>
               </div>
-            </div>
-            <div class="event-title" :style="eventTitleStyle(event)">
-              {{ getEventTitle(event) }}
-            </div>
-            <div
-              v-if="event.type === 'appointment' && getEventDetails(event)"
-              class="event-details"
-              :style="eventDetailsStyle(event)"
-            >
-              {{ getEventDetails(event) }}
             </div>
           </div>
         </div>
@@ -176,15 +181,16 @@ export default {
       return slots;
     });
 
-    // Check if this is today and if slot is current time
+    // Check if this is today
     const isToday = computed(() => {
       const now = new Date();
       const tzDate = new Date(now.toLocaleString('en-US', { timeZone: props.timezone || 'America/Sao_Paulo' }));
       return dateString.value === tzDate.toISOString().split('T')[0];
     });
 
-    const isCurrentTimeSlot = (slot) => {
-      if (!isToday.value) return false;
+    // Calculate current time position in pixels
+    const currentTimePosition = computed(() => {
+      if (!isToday.value) return null;
 
       // Get current time in the user's timezone
       const now = new Date();
@@ -192,12 +198,18 @@ export default {
       const currentHour = tzDate.getHours();
       const currentMinute = tzDate.getMinutes();
 
-      const slotStart = slot.hour * 60 + slot.minute;
-      const slotEnd = slotStart + props.timeSlotMinutes;
-      const currentTime = currentHour * 60 + currentMinute;
+      // Check if current time is within working hours
+      if (currentHour < props.workingHoursStart || currentHour > props.workingHoursEnd) {
+        return null;
+      }
 
-      return currentTime >= slotStart && currentTime < slotEnd;
-    };
+      // Calculate position in minutes from start of working hours
+      const minutesFromStart = (currentHour - props.workingHoursStart) * 60 + currentMinute;
+
+      // Each hour slot is 80px, so pixels per minute is 80/60
+      const pixelsPerMinute = 80 / 60;
+      return minutesFromStart * pixelsPerMinute;
+    });
 
     // Styles
     const dayHeaderStyle = computed(() => ({
@@ -228,13 +240,23 @@ export default {
 
     const getTimeSlotStyle = (slot) => ({
       borderBottom: `1px solid ${props.styles.borderColor}`,
-      minHeight: '80px',
-      backgroundColor: isCurrentTimeSlot(slot) ? props.styles.todayHighlightColor : 'transparent'
+      minHeight: '80px'
     });
 
-    const currentTimeIndicatorStyle = computed(() => ({
-      backgroundColor: props.styles.primaryColor
-    }));
+    const currentTimeIndicatorStyle = computed(() => {
+      if (!currentTimePosition.value) return {};
+
+      return {
+        position: 'absolute',
+        top: `${currentTimePosition.value}px`,
+        left: '0',
+        right: '0',
+        height: '2px',
+        backgroundColor: props.styles.primaryColor || '#EF4444',
+        zIndex: 20,
+        pointerEvents: 'none'
+      };
+    });
 
     const getEventStyle = (event) => {
       if (event.type === 'block') {
@@ -372,7 +394,7 @@ export default {
         }
 
         if (clientName) {
-          html += `<div class="tooltip-info">👤 ${clientName}</div>`;
+          html += `<div class="tooltip-info"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${clientName}</div>`;
         }
 
         if (apt._service?.nome_servico && apt.titulo) {
@@ -512,13 +534,45 @@ export default {
       });
     };
 
+    const handleTooltipPosition = (e) => {
+      const tooltip = e.currentTarget.querySelector('.custom-tooltip');
+      if (!tooltip) return;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+
+      // Position tooltip above the element
+      let top = rect.top - tooltipRect.height - 8;
+      let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+
+      // Check if tooltip goes off-screen at the top
+      if (top < 10) {
+        // Position below instead
+        top = rect.bottom + 8;
+      }
+
+      // Check if tooltip goes off-screen on the left
+      if (left < 10) {
+        left = 10;
+      }
+
+      // Check if tooltip goes off-screen on the right
+      if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - tooltipRect.width - 10;
+      }
+
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+    };
+
     return {
       dayName,
       formattedDate,
       hours,
       timeSlots,
       dayEvents,
-      isCurrentTimeSlot,
+      isToday,
+      currentTimePosition,
       dayHeaderStyle,
       dayNameStyle,
       dayDateStyle,
@@ -536,7 +590,8 @@ export default {
       getEventDetails,
       getEventTooltipHTML,
       handleEventClick,
-      handleSlotClick
+      handleSlotClick,
+      handleTooltipPosition
     };
   }
 };
@@ -622,18 +677,10 @@ export default {
 }
 
 .current-time-indicator {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 2px;
-  z-index: 15;
-  pointer-events: none;
-
   &::before {
     content: '';
     position: absolute;
-    left: -6px;
+    left: -5px;
     top: -4px;
     width: 10px;
     height: 10px;
@@ -652,11 +699,14 @@ export default {
 }
 
 .day-event {
-  padding: 12px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   overflow: hidden;
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 
   &:hover {
     transform: translateX(4px);
@@ -672,21 +722,45 @@ export default {
   }
 }
 
-.event-header {
+.event-content-wrapper {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.event-main-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .event-time-range {
   white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.event-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+}
+
+.event-details {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
 }
 
 .event-status {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .status-badge {
@@ -707,16 +781,6 @@ export default {
   }
 }
 
-.event-title {
-  margin-bottom: 4px;
-  line-height: 1.4;
-}
-
-.event-details {
-  line-height: 1.4;
-  margin-top: 4px;
-}
-
 // Custom tooltip styles
 .has-tooltip {
   position: relative;
@@ -724,10 +788,7 @@ export default {
   .custom-tooltip {
     visibility: hidden;
     opacity: 0;
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-8px);
+    position: fixed;
     background-color: #1F2937;
     color: white;
     padding: 12px 16px;
@@ -735,27 +796,16 @@ export default {
     font-size: 13px;
     line-height: 1.6;
     white-space: nowrap;
-    z-index: 1000;
+    z-index: 9999;
     pointer-events: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity 0.2s ease;
     max-width: 300px;
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-top-color: #1F2937;
-    }
   }
 
   &:hover .custom-tooltip {
     visibility: visible;
     opacity: 1;
-    transform: translateX(-50%) translateY(-4px);
   }
 }
 
