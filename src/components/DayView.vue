@@ -165,17 +165,20 @@ export default {
 
     const timeSlots = computed(() => {
       const slots = [];
+      const totalHours = props.workingHoursEnd - props.workingHoursStart;
+      const slotsPerHour = 60 / props.timeSlotMinutes;
+      const totalSlots = totalHours * slotsPerHour;
 
-      for (let h = props.workingHoursStart; h <= props.workingHoursEnd; h++) {
-        for (let m = 0; m < 60; m += props.timeSlotMinutes) {
-          if (h === props.workingHoursEnd && m > 0) break;
+      for (let i = 0; i < totalSlots; i++) {
+        const totalMinutes = i * props.timeSlotMinutes;
+        const h = props.workingHoursStart + Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
 
-          slots.push({
-            hour: h,
-            minute: m,
-            time: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-          });
-        }
+        slots.push({
+          hour: h,
+          minute: m,
+          time: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+        });
       }
 
       return slots;

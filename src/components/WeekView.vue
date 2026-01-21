@@ -59,28 +59,30 @@
               @click.stop="handleEventClick(event)"
             >
               <div class="custom-tooltip" v-html="getEventTooltipHTML(event)"></div>
-              <div class="event-time-range" :style="eventTextStyle(event)">
-                {{ formatTime(event.data.data_inicio) }}
-                <span v-if="event.data.data_fim"> - {{ formatTime(event.data.data_fim) }}</span>
-              </div>
-              <div class="event-title" :style="eventTextStyle(event)">
-                {{ getEventTitle(event) }}
-              </div>
-              <div v-if="event.type === 'appointment'" class="event-status">
-                <div v-if="event.data.status === 'pending'" class="status-badge pending">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                  </svg>
+              <div class="event-indicator" :style="getEventIndicatorStyle(event)"></div>
+              <div class="event-content-week">
+                <div class="event-time-range" :style="eventTextStyle(event)">
+                  {{ formatTime(event.data.data_inicio) }}
                 </div>
-                <div v-else-if="event.data.status === 'confirmed'" class="status-badge confirmed">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M2 5L4 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
+                <div class="event-title" :style="eventTextStyle(event)">
+                  {{ getEventTitle(event) }}
                 </div>
-                <div v-else-if="event.data.status === 'cancelled'" class="status-badge cancelled">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
+                <div v-if="event.type === 'appointment'" class="event-status">
+                  <div v-if="event.data.status === 'pending'" class="status-badge pending">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    </svg>
+                  </div>
+                  <div v-else-if="event.data.status === 'confirmed'" class="status-badge confirmed">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 5L4 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <div v-else-if="event.data.status === 'cancelled'" class="status-badge cancelled">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
@@ -227,8 +229,7 @@ export default {
         return {
           backgroundColor: props.styles.blockBg,
           color: props.styles.blockText,
-          border: `1px solid ${props.styles.blockText}40`,
-          borderLeft: `3px solid ${props.styles.blockText}`,
+          border: `1px solid ${props.styles.blockText}20`,
           borderRadius: '8px',
           opacity: 1
         };
@@ -237,8 +238,7 @@ export default {
       const style = {
         backgroundColor: props.styles.appointmentBg,
         color: props.styles.appointmentText,
-        border: `1px solid ${props.styles.appointmentText}40`,
-        borderLeft: `3px solid ${props.styles.appointmentText}`,
+        border: `1px solid ${props.styles.appointmentText}20`,
         borderRadius: '8px'
       };
 
@@ -247,6 +247,26 @@ export default {
       }
 
       return style;
+    };
+
+    const getEventIndicatorStyle = (event) => {
+      if (event.type === 'block') {
+        return {
+          backgroundColor: props.styles.blockText,
+          width: '3px',
+          minWidth: '3px',
+          borderRadius: '2px',
+          alignSelf: 'stretch'
+        };
+      }
+
+      return {
+        backgroundColor: props.styles.appointmentText,
+        width: '3px',
+        minWidth: '3px',
+        borderRadius: '2px',
+        alignSelf: 'stretch'
+      };
     };
 
     const eventTextStyle = (event) => ({
@@ -428,6 +448,7 @@ export default {
       dayColumnStyle,
       getTimeSlotStyle,
       getEventStyle,
+      getEventIndicatorStyle,
       eventTextStyle,
       formatHour,
       formatTime,
@@ -562,12 +583,15 @@ export default {
 }
 
 .slot-event {
-  padding: 6px 8px;
-  margin: 2px 4px;
+  padding: 4px 6px;
+  margin: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   overflow: visible;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
 
   &:hover {
     transform: translateX(2px);
@@ -579,33 +603,48 @@ export default {
   }
 
   @media (max-width: 768px) {
-    padding: 4px 6px;
-    margin: 1px 2px;
+    padding: 3px 4px;
+    margin: 2px;
   }
+}
+
+.event-indicator {
+  align-self: stretch;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.event-content-week {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .event-time-range {
   font-weight: 600;
   font-size: 11px;
-  margin-bottom: 2px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .event-title {
   font-weight: 500;
+  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .event-status {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .status-badge {

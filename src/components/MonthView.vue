@@ -38,6 +38,8 @@
             :class="{ cancelled: appointment.status === 'cancelled' }"
             :style="getAppointmentStyle(appointment)"
             @click.stop="handleAppointmentClick(appointment)"
+            @mouseenter="handleTooltipPosition"
+            @mousemove="handleTooltipPosition"
           >
             <div class="custom-tooltip" v-html="getAppointmentTooltipHTML(appointment)"></div>
             <div class="event-indicator" :style="getEventIndicatorStyle(appointment)"></div>
@@ -72,6 +74,8 @@
             :key="block.id"
             class="event-item block has-tooltip"
             :style="getBlockStyle()"
+            @mouseenter="handleTooltipPosition"
+            @mousemove="handleTooltipPosition"
           >
             <div class="custom-tooltip" v-html="getBlockTooltipHTML(block)"></div>
             <div class="event-indicator block-indicator" :style="getBlockIndicatorStyle()"></div>
@@ -302,7 +306,7 @@ export default {
       }
 
       if (clientName) {
-        html += `<div class="tooltip-info">👤 ${clientName}</div>`;
+        html += `<div class="tooltip-info"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${clientName}</div>`;
       }
 
       if (appointment.status) {
@@ -349,6 +353,39 @@ export default {
           timestamp: day.date.toISOString()
         });
       }
+    };
+
+    const handleTooltipPosition = (e) => {
+      const tooltip = e.currentTarget.querySelector('.custom-tooltip');
+      if (!tooltip) return;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+
+      // Position tooltip above the element
+      let top = rect.top - tooltipRect.height - 8;
+      let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+
+      // Check if tooltip goes off-screen at the top
+      if (top < 10) {
+        // Position below instead
+        top = rect.bottom + 8;
+      }
+
+      // Check if tooltip goes off-screen on the left
+      if (left < 10) {
+        left = 10;
+      }
+
+      // Check if tooltip goes off-screen on the right
+      if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - tooltipRect.width - 10;
+      }
+
+      tooltip.style.position = 'fixed';
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+      tooltip.style.transform = 'none';
     };
 
     return {
