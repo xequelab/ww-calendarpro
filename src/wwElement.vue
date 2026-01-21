@@ -79,6 +79,7 @@
         :working-hours-start="workingHoursStart"
         :working-hours-end="workingHoursEnd"
         :time-slot-minutes="timeSlotMinutes"
+        :timezone="content.timezone"
         :styles="viewStyles"
         @appointment-click="handleAppointmentClick"
         @empty-slot-click="handleEmptySlotClick"

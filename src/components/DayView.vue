@@ -121,6 +121,10 @@ export default {
       type: Number,
       default: 30
     },
+    timezone: {
+      type: String,
+      default: 'America/Sao_Paulo'
+    },
     styles: {
       type: Object,
       required: true
@@ -172,16 +176,19 @@ export default {
 
     // Check if this is today and if slot is current time
     const isToday = computed(() => {
-      const today = new Date();
-      return dateString.value === today.toISOString().split('T')[0];
+      const now = new Date();
+      const tzDate = new Date(now.toLocaleString('en-US', { timeZone: props.timezone || 'America/Sao_Paulo' }));
+      return dateString.value === tzDate.toISOString().split('T')[0];
     });
 
     const isCurrentTimeSlot = (slot) => {
       if (!isToday.value) return false;
 
+      // Get current time in the user's timezone
       const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
+      const tzDate = new Date(now.toLocaleString('en-US', { timeZone: props.timezone || 'America/Sao_Paulo' }));
+      const currentHour = tzDate.getHours();
+      const currentMinute = tzDate.getMinutes();
 
       const slotStart = slot.hour * 60 + slot.minute;
       const slotEnd = slotStart + props.timeSlotMinutes;

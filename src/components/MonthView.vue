@@ -376,6 +376,7 @@ export default {
 <style scoped lang="scss">
 .month-view {
   width: 100%;
+  overflow: visible;
 }
 
 .weekday-headers {
@@ -398,7 +399,7 @@ export default {
   gap: 0;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 
   @media (max-width: 768px) {
     gap: 0;
@@ -411,6 +412,7 @@ export default {
   display: flex;
   flex-direction: column;
   transition: background-color 0.2s ease;
+  overflow: visible;
 
   &:hover:not(.other-month) {
     background-color: var(--today-highlight-color) !important;
@@ -437,7 +439,7 @@ export default {
   flex-direction: column;
   gap: 4px;
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .event-item {
@@ -533,9 +535,9 @@ export default {
     visibility: hidden;
     opacity: 0;
     position: absolute;
-    bottom: 100%;
+    bottom: calc(100% + 8px);
     left: 50%;
-    transform: translateX(-50%) translateY(-8px);
+    transform: translateX(-50%);
     background-color: #1F2937;
     color: white;
     padding: 12px 16px;
@@ -543,10 +545,11 @@ export default {
     font-size: 13px;
     line-height: 1.6;
     white-space: nowrap;
-    z-index: 1000;
+    z-index: 9999;
     pointer-events: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: opacity 0.2s ease, transform 0.2s ease;
+    min-width: 200px;
 
     &::after {
       content: '';
@@ -563,21 +566,6 @@ export default {
     visibility: visible;
     opacity: 1;
     transform: translateX(-50%) translateY(-4px);
-  }
-
-  @media (max-width: 768px) {
-    .custom-tooltip {
-      left: 0;
-      transform: translateX(0) translateY(-8px);
-
-      &::after {
-        left: 20px;
-      }
-
-      &:hover {
-        transform: translateX(0) translateY(-4px);
-      }
-    }
   }
 }
 
