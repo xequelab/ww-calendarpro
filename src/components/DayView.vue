@@ -41,8 +41,7 @@
           <div
             v-for="event in getSlotEvents(slot)"
             :key="event.id"
-            class="slot-event"
-            :title="getEventTooltip(event)"
+            class="slot-event has-tooltip"
             :class="{
               'appointment': event.type === 'appointment',
               'block': event.type === 'block',
@@ -51,6 +50,7 @@
             :style="getEventStyle(event)"
             @click.stop="handleEventClick(event)"
           >
+            <div class="custom-tooltip" v-html="getEventTooltipHTML(event)"></div>
             <div class="event-header">
               <div class="event-time-range" :style="eventTextStyle(event)">
                 {{ formatTime(event.data.data_inicio) }}
@@ -271,18 +271,16 @@ export default {
 
     // Utility functions
     const formatHour = (hour) => {
-      const period = hour >= 12 ? 'PM' : 'AM';
-      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-      return `${displayHour} ${period}`;
+      return `${String(hour).padStart(2, '0')}:00`;
     };
 
     const formatTime = (dateString) => {
       if (!dateString) return '';
       const date = new Date(dateString);
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
+      return date.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: true
+        hour12: false
       });
     };
 
@@ -325,69 +323,67 @@ export default {
       return details.join(' • ');
     };
 
-    const getEventTooltip = (event) => {
-      const parts = [];
-
+    const getEventTooltipHTML = (event) => {
       if (event.type === 'block') {
-        parts.push('Bloqueio');
+        let html = `<div class="tooltip-title">🚫 Bloqueio</div>`;
+
         if (event.data.motivo) {
-          parts.push(event.data.motivo);
+          html += `<div class="tooltip-info">${event.data.motivo}</div>`;
         }
+
         if (event.data.data_inicio) {
           const start = formatTime(event.data.data_inicio);
           const end = event.data.data_fim ? formatTime(event.data.data_fim) : '';
-          parts.push(end ? `${start} - ${end}` : start);
+          html += `<div class="tooltip-time">🕐 ${end ? `${start} - ${end}` : start}</div>`;
         }
+
         if (event.data.dia_inteiro) {
-          parts.push('Dia inteiro');
+          html += `<div class="tooltip-info">📅 Dia inteiro</div>`;
         }
+
+        return html;
       } else {
         const apt = event.data;
-
-        // Título ou serviço
         const title = apt.titulo || apt._service?.nome_servico || 'Agendamento';
-        parts.push(title);
+        const clientName = apt._client?.nome || apt.nome_cliente;
 
-        // Horário
+        const statusMap = {
+          pending: { label: 'Pendente', color: '#6B7280' },
+          confirmed: { label: 'Confirmado', color: '#10B981' },
+          cancelled: { label: 'Cancelado', color: '#EF4444' }
+        };
+        const status = statusMap[apt.status] || { label: apt.status, color: '#6B7280' };
+
+        let html = `<div class="tooltip-title">${title}</div>`;
+
         if (apt.data_inicio) {
           const start = formatTime(apt.data_inicio);
           const end = apt.data_fim ? formatTime(apt.data_fim) : '';
-          parts.push(end ? `${start} - ${end}` : start);
+          html += `<div class="tooltip-time">🕐 ${end ? `${start} - ${end}` : start}</div>`;
         }
 
-        // Cliente
-        const clientName = apt._client?.nome || apt.nome_cliente;
         if (clientName) {
-          parts.push(`Cliente: ${clientName}`);
+          html += `<div class="tooltip-info">👤 ${clientName}</div>`;
         }
 
-        // Serviço
         if (apt._service?.nome_servico && apt.titulo) {
-          parts.push(`Serviço: ${apt._service.nome_servico}`);
+          html += `<div class="tooltip-info">💼 ${apt._service.nome_servico}</div>`;
         }
 
-        // Status
-        const statusMap = {
-          pending: 'Pendente',
-          confirmed: 'Confirmado',
-          cancelled: 'Cancelado'
-        };
         if (apt.status) {
-          parts.push(`Status: ${statusMap[apt.status] || apt.status}`);
+          html += `<div class="tooltip-status" style="color: ${status.color}">● ${status.label}</div>`;
         }
 
-        // Localização
         if (apt.location) {
-          parts.push(`Local: ${apt.location}`);
+          html += `<div class="tooltip-info">📍 ${apt.location}</div>`;
         }
 
-        // Descrição
         if (apt.descricao) {
-          parts.push(`\n${apt.descricao}`);
+          html += `<div class="tooltip-description">${apt.descricao}</div>`;
         }
-      }
 
-      return parts.join('\n');
+        return html;
+      }
     };
 
     const getSlotEvents = (slot) => {
@@ -492,7 +488,7 @@ export default {
       formatTime,
       getEventTitle,
       getEventDetails,
-      getEventTooltip,
+      getEventTooltipHTML,
       getSlotEvents,
       handleEventClick,
       handleSlotClick
@@ -667,5 +663,83 @@ export default {
 .event-details {
   line-height: 1.4;
   margin-top: 4px;
+}
+
+// Custom tooltip styles
+.has-tooltip {
+  position: relative;
+
+  .custom-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background-color: #1F2937;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    max-width: 300px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #1F2937;
+    }
+  }
+
+  &:hover .custom-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 6px;
+}
+
+.tooltip-time {
+  margin: 4px 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.tooltip-info {
+  margin: 4px 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.tooltip-status {
+  margin: 4px 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tooltip-description {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  opacity: 0.85;
+  white-space: normal;
+  max-width: 250px;
 }
 </style>

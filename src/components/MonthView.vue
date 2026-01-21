@@ -34,12 +34,12 @@
           <div
             v-for="appointment in day.appointments"
             :key="appointment.id"
-            class="event-item appointment"
+            class="event-item appointment has-tooltip"
             :class="{ cancelled: appointment.status === 'cancelled' }"
             :style="getAppointmentStyle(appointment)"
-            :title="getAppointmentTooltip(appointment)"
             @click.stop="handleAppointmentClick(appointment)"
           >
+            <div class="custom-tooltip" v-html="getAppointmentTooltipHTML(appointment)"></div>
             <div class="event-indicator" :style="getEventIndicatorStyle(appointment)"></div>
             <div class="event-content">
               <div class="event-time">
@@ -70,10 +70,10 @@
           <div
             v-for="block in day.blocks"
             :key="block.id"
-            class="event-item block"
+            class="event-item block has-tooltip"
             :style="getBlockStyle()"
-            :title="getBlockTooltip(block)"
           >
+            <div class="custom-tooltip" v-html="getBlockTooltipHTML(block)"></div>
             <div class="event-indicator block-indicator" :style="getBlockIndicatorStyle()"></div>
             <div class="event-content">
               <div class="event-time">
@@ -267,10 +267,10 @@ export default {
     const formatTime = (dateString) => {
       if (!dateString) return '';
       const date = new Date(dateString);
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
+      return date.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: true
+        hour12: false
       });
     };
 
@@ -282,64 +282,58 @@ export default {
       return 'Agendamento';
     };
 
-    const getAppointmentTooltip = (appointment) => {
-      const parts = [];
-
-      // Título ou serviço
+    const getAppointmentTooltipHTML = (appointment) => {
       const title = appointment.titulo || appointment._service?.nome_servico || 'Agendamento';
-      parts.push(title);
+      const clientName = appointment._client?.nome || appointment.nome_cliente;
 
-      // Horário
+      const statusMap = {
+        pending: { label: 'Pendente', color: '#6B7280' },
+        confirmed: { label: 'Confirmado', color: '#10B981' },
+        cancelled: { label: 'Cancelado', color: '#EF4444' }
+      };
+      const status = statusMap[appointment.status] || { label: appointment.status, color: '#6B7280' };
+
+      let html = `<div class="tooltip-title">${title}</div>`;
+
       if (appointment.data_inicio) {
         const start = formatTime(appointment.data_inicio);
         const end = appointment.data_fim ? formatTime(appointment.data_fim) : '';
-        parts.push(end ? `${start} - ${end}` : start);
+        html += `<div class="tooltip-time">🕐 ${end ? `${start} - ${end}` : start}</div>`;
       }
 
-      // Cliente
-      const clientName = appointment._client?.nome || appointment.nome_cliente;
       if (clientName) {
-        parts.push(`Cliente: ${clientName}`);
+        html += `<div class="tooltip-info">👤 ${clientName}</div>`;
       }
 
-      // Status
-      const statusMap = {
-        pending: 'Pendente',
-        confirmed: 'Confirmado',
-        cancelled: 'Cancelado'
-      };
       if (appointment.status) {
-        parts.push(`Status: ${statusMap[appointment.status] || appointment.status}`);
+        html += `<div class="tooltip-status" style="color: ${status.color}">● ${status.label}</div>`;
       }
 
-      // Localização
       if (appointment.location) {
-        parts.push(`Local: ${appointment.location}`);
+        html += `<div class="tooltip-info">📍 ${appointment.location}</div>`;
       }
 
-      return parts.join('\n');
+      return html;
     };
 
-    const getBlockTooltip = (block) => {
-      const parts = [];
-
-      parts.push('Bloqueio');
+    const getBlockTooltipHTML = (block) => {
+      let html = `<div class="tooltip-title">🚫 Bloqueio</div>`;
 
       if (block.motivo) {
-        parts.push(block.motivo);
+        html += `<div class="tooltip-info">${block.motivo}</div>`;
       }
 
       if (block.data_inicio) {
         const start = formatTime(block.data_inicio);
         const end = block.data_fim ? formatTime(block.data_fim) : '';
-        parts.push(end ? `${start} - ${end}` : start);
+        html += `<div class="tooltip-time">🕐 ${end ? `${start} - ${end}` : start}</div>`;
       }
 
       if (block.dia_inteiro) {
-        parts.push('Dia inteiro');
+        html += `<div class="tooltip-info">📅 Dia inteiro</div>`;
       }
 
-      return parts.join('\n');
+      return html;
     };
 
     // Handlers de eventos
@@ -370,8 +364,8 @@ export default {
       moreEventsStyle,
       formatTime,
       getAppointmentTitle,
-      getAppointmentTooltip,
-      getBlockTooltip,
+      getAppointmentTooltipHTML,
+      getBlockTooltipHTML,
       handleAppointmentClick,
       handleDayClick
     };
@@ -529,5 +523,87 @@ export default {
   &:hover {
     background-color: var(--border-color);
   }
+}
+
+// Custom tooltip styles
+.has-tooltip {
+  position: relative;
+
+  .custom-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background-color: #1F2937;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #1F2937;
+    }
+  }
+
+  &:hover .custom-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  @media (max-width: 768px) {
+    .custom-tooltip {
+      left: 0;
+      transform: translateX(0) translateY(-8px);
+
+      &::after {
+        left: 20px;
+      }
+
+      &:hover {
+        transform: translateX(0) translateY(-4px);
+      }
+    }
+  }
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 6px;
+}
+
+.tooltip-time {
+  margin: 4px 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.tooltip-info {
+  margin: 4px 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.tooltip-status {
+  margin: 4px 0;
+  font-size: 12px;
+  font-weight: 600;
 }
 </style>

@@ -247,6 +247,24 @@ export default {
         max: 120
       }
     },
+    timezone: {
+      label: {
+        en: 'Timezone',
+        pt: 'Fuso Horário'
+      },
+      type: 'Text',
+      section: 'settings',
+      defaultValue: 'America/Sao_Paulo',
+      bindable: true,
+      options: {
+        placeholder: 'America/Sao_Paulo'
+      },
+      /* wwEditor:start */
+      propertyHelp: {
+        tooltip: 'IANA timezone (ex: America/Sao_Paulo, America/New_York)'
+      }
+      /* wwEditor:end */
+    },
 
     // Visual Styles
     primaryColor: {
