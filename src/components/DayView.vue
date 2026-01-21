@@ -22,7 +22,7 @@
 
       <!-- Coluna do dia -->
       <div class="day-column" :style="dayColumnStyle">
-        <!-- Slots de horário -->
+        <!-- Slots de horário (fundo) -->
         <div
           v-for="slot in timeSlots"
           :key="slot.time"
@@ -36,18 +36,20 @@
             class="current-time-indicator"
             :style="currentTimeIndicatorStyle"
           ></div>
+        </div>
 
-          <!-- Eventos do slot -->
+        <!-- Eventos posicionados absolutamente -->
+        <div class="events-container">
           <div
-            v-for="event in getSlotEvents(slot)"
+            v-for="event in dayEvents"
             :key="event.id"
-            class="slot-event has-tooltip"
+            class="day-event has-tooltip"
             :class="{
               'appointment': event.type === 'appointment',
               'block': event.type === 'block',
               'cancelled': event.type === 'appointment' && event.data.status === 'cancelled'
             }"
-            :style="getEventStyle(event)"
+            :style="getAbsoluteEventStyle(event)"
             @click.stop="handleEventClick(event)"
           >
             <div class="custom-tooltip" v-html="getEventTooltipHTML(event)"></div>
@@ -393,12 +395,9 @@ export default {
       }
     };
 
-    const getSlotEvents = (slot) => {
+    // Get all events for the day
+    const dayEvents = computed(() => {
       const events = [];
-      const slotStart = new Date(props.currentDate);
-      slotStart.setHours(slot.hour, slot.minute, 0, 0);
-      const slotEnd = new Date(slotStart);
-      slotEnd.setMinutes(slotEnd.getMinutes() + props.timeSlotMinutes);
 
       // Check appointments
       props.appointments.forEach(apt => {
@@ -407,21 +406,15 @@ export default {
         const aptStart = new Date(apt.data_inicio);
         const aptEnd = apt.data_fim ? new Date(apt.data_fim) : new Date(aptStart.getTime() + 30 * 60000);
 
-        // Check if appointment overlaps with this slot
+        // Check if appointment is on this day
         if (aptStart.toISOString().split('T')[0] === dateString.value) {
-          if (
-            (aptStart >= slotStart && aptStart < slotEnd) ||
-            (aptEnd > slotStart && aptEnd <= slotEnd) ||
-            (aptStart <= slotStart && aptEnd >= slotEnd)
-          ) {
-            events.push({
-              type: 'appointment',
-              id: `apt-${apt.id}`,
-              data: apt,
-              start: aptStart,
-              end: aptEnd
-            });
-          }
+          events.push({
+            type: 'appointment',
+            id: `apt-${apt.id}`,
+            data: apt,
+            start: aptStart,
+            end: aptEnd
+          });
         }
       });
 
@@ -432,25 +425,73 @@ export default {
         const blockStart = new Date(block.data_inicio);
         const blockEnd = block.data_fim ? new Date(block.data_fim) : new Date(blockStart.getTime() + 60 * 60000);
 
-        // Check if block overlaps with this slot
+        // Check if block is on this day
         if (blockStart.toISOString().split('T')[0] === dateString.value) {
-          if (
-            (blockStart >= slotStart && blockStart < slotEnd) ||
-            (blockEnd > slotStart && blockEnd <= slotEnd) ||
-            (blockStart <= slotStart && blockEnd >= slotEnd)
-          ) {
-            events.push({
-              type: 'block',
-              id: `block-${block.id}`,
-              data: block,
-              start: blockStart,
-              end: blockEnd
-            });
-          }
+          events.push({
+            type: 'block',
+            id: `block-${block.id}`,
+            data: block,
+            start: blockStart,
+            end: blockEnd
+          });
         }
       });
 
       return events;
+    });
+
+    // Calculate absolute position for event
+    const getAbsoluteEventStyle = (event) => {
+      const startHour = event.start.getHours();
+      const startMinute = event.start.getMinutes();
+      const endHour = event.end.getHours();
+      const endMinute = event.end.getMinutes();
+
+      // Calculate position in minutes from start of working hours
+      const startMinutes = (startHour - props.workingHoursStart) * 60 + startMinute;
+      const endMinutes = (endHour - props.workingHoursStart) * 60 + endMinute;
+      const durationMinutes = endMinutes - startMinutes;
+
+      // Each hour slot is 80px
+      const pixelsPerMinute = 80 / 60;
+      const top = startMinutes * pixelsPerMinute;
+      const height = Math.max(durationMinutes * pixelsPerMinute, 40); // Minimum 40px height
+
+      const baseStyle = {
+        position: 'absolute',
+        top: `${top}px`,
+        left: '4px',
+        right: '4px',
+        height: `${height}px`,
+        zIndex: 10
+      };
+
+      if (event.type === 'block') {
+        return {
+          ...baseStyle,
+          backgroundColor: props.styles.blockBg,
+          color: props.styles.blockText,
+          border: `1px solid ${props.styles.blockText}40`,
+          borderLeft: `4px solid ${props.styles.blockText}`,
+          borderRadius: '8px',
+          opacity: 1
+        };
+      }
+
+      const style = {
+        ...baseStyle,
+        backgroundColor: props.styles.appointmentBg,
+        color: props.styles.appointmentText,
+        border: `1px solid ${props.styles.appointmentText}40`,
+        borderLeft: `4px solid ${props.styles.appointmentText}`,
+        borderRadius: '8px'
+      };
+
+      if (event.data.status === 'cancelled') {
+        style.opacity = props.styles.cancelledOpacity;
+      }
+
+      return style;
     };
 
     // Event handlers
@@ -461,17 +502,14 @@ export default {
     };
 
     const handleSlotClick = (slot) => {
-      const events = getSlotEvents(slot);
-      if (events.length === 0) {
-        const slotDate = new Date(props.currentDate);
-        slotDate.setHours(slot.hour, slot.minute, 0, 0);
+      const slotDate = new Date(props.currentDate);
+      slotDate.setHours(slot.hour, slot.minute, 0, 0);
 
-        emit('empty-slot-click', {
-          date: dateString.value,
-          time: slot.time,
-          timestamp: slotDate.toISOString()
-        });
-      }
+      emit('empty-slot-click', {
+        date: dateString.value,
+        time: slot.time,
+        timestamp: slotDate.toISOString()
+      });
     };
 
     return {
@@ -479,6 +517,7 @@ export default {
       formattedDate,
       hours,
       timeSlots,
+      dayEvents,
       isCurrentTimeSlot,
       dayHeaderStyle,
       dayNameStyle,
@@ -487,7 +526,7 @@ export default {
       dayColumnStyle,
       getTimeSlotStyle,
       currentTimeIndicatorStyle,
-      getEventStyle,
+      getAbsoluteEventStyle,
       eventTextStyle,
       eventTitleStyle,
       eventDetailsStyle,
@@ -496,7 +535,6 @@ export default {
       getEventTitle,
       getEventDetails,
       getEventTooltipHTML,
-      getSlotEvents,
       handleEventClick,
       handleSlotClick
     };
@@ -569,10 +607,10 @@ export default {
 }
 
 .time-slot {
-  position: relative;
+  height: 80px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  padding: 4px;
+  border-bottom: 1px solid var(--border-color);
 
   &:hover {
     background-color: var(--today-highlight-color);
@@ -589,7 +627,7 @@ export default {
   right: 0;
   top: 0;
   height: 2px;
-  z-index: 10;
+  z-index: 15;
   pointer-events: none;
 
   &::before {
@@ -604,13 +642,21 @@ export default {
   }
 }
 
-.slot-event {
+.events-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.day-event {
   padding: 12px;
-  margin: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  position: relative;
   overflow: hidden;
+  pointer-events: auto;
 
   &:hover {
     transform: translateX(4px);
@@ -623,7 +669,6 @@ export default {
 
   @media (max-width: 768px) {
     padding: 8px;
-    margin: 2px;
   }
 }
 
