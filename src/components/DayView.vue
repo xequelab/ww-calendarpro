@@ -1,14 +1,14 @@
 <template>
   <div class="day-view">
-    <!-- Day Header -->
+    <!-- Cabeçalho do dia -->
     <div class="day-header" :style="dayHeaderStyle">
       <div class="day-name" :style="dayNameStyle">{{ dayName }}</div>
       <div class="day-date" :style="dayDateStyle">{{ formattedDate }}</div>
     </div>
 
-    <!-- Time Grid -->
+    <!-- Grade de horários -->
     <div class="day-grid-container">
-      <!-- Time labels column -->
+      <!-- Coluna de rótulos de horário -->
       <div class="time-labels">
         <div
           v-for="hour in hours"
@@ -20,9 +20,9 @@
         </div>
       </div>
 
-      <!-- Day column -->
+      <!-- Coluna do dia -->
       <div class="day-column" :style="dayColumnStyle">
-        <!-- Time slots -->
+        <!-- Slots de horário -->
         <div
           v-for="slot in timeSlots"
           :key="slot.time"
@@ -30,18 +30,19 @@
           :style="getTimeSlotStyle(slot)"
           @click="handleSlotClick(slot)"
         >
-          <!-- Current time indicator -->
+          <!-- Indicador de horário atual -->
           <div
             v-if="isCurrentTimeSlot(slot)"
             class="current-time-indicator"
             :style="currentTimeIndicatorStyle"
           ></div>
 
-          <!-- Slot events -->
+          <!-- Eventos do slot -->
           <div
             v-for="event in getSlotEvents(slot)"
             :key="event.id"
             class="slot-event"
+            :title="getEventTooltip(event)"
             :class="{
               'appointment': event.type === 'appointment',
               'block': event.type === 'block',
@@ -324,6 +325,71 @@ export default {
       return details.join(' • ');
     };
 
+    const getEventTooltip = (event) => {
+      const parts = [];
+
+      if (event.type === 'block') {
+        parts.push('Bloqueio');
+        if (event.data.motivo) {
+          parts.push(event.data.motivo);
+        }
+        if (event.data.data_inicio) {
+          const start = formatTime(event.data.data_inicio);
+          const end = event.data.data_fim ? formatTime(event.data.data_fim) : '';
+          parts.push(end ? `${start} - ${end}` : start);
+        }
+        if (event.data.dia_inteiro) {
+          parts.push('Dia inteiro');
+        }
+      } else {
+        const apt = event.data;
+
+        // Título ou serviço
+        const title = apt.titulo || apt._service?.nome_servico || 'Agendamento';
+        parts.push(title);
+
+        // Horário
+        if (apt.data_inicio) {
+          const start = formatTime(apt.data_inicio);
+          const end = apt.data_fim ? formatTime(apt.data_fim) : '';
+          parts.push(end ? `${start} - ${end}` : start);
+        }
+
+        // Cliente
+        const clientName = apt._client?.nome || apt.nome_cliente;
+        if (clientName) {
+          parts.push(`Cliente: ${clientName}`);
+        }
+
+        // Serviço
+        if (apt._service?.nome_servico && apt.titulo) {
+          parts.push(`Serviço: ${apt._service.nome_servico}`);
+        }
+
+        // Status
+        const statusMap = {
+          pending: 'Pendente',
+          confirmed: 'Confirmado',
+          cancelled: 'Cancelado'
+        };
+        if (apt.status) {
+          parts.push(`Status: ${statusMap[apt.status] || apt.status}`);
+        }
+
+        // Localização
+        if (apt.location) {
+          parts.push(`Local: ${apt.location}`);
+        }
+
+        // Descrição
+        if (apt.descricao) {
+          parts.push(`\n${apt.descricao}`);
+        }
+      }
+
+      return parts.join('\n');
+    };
+
     const getSlotEvents = (slot) => {
       const events = [];
       const slotStart = new Date(props.currentDate);
@@ -426,6 +492,7 @@ export default {
       formatTime,
       getEventTitle,
       getEventDetails,
+      getEventTooltip,
       getSlotEvents,
       handleEventClick,
       handleSlotClick

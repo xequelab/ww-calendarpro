@@ -1,6 +1,6 @@
 <template>
   <div class="week-view">
-    <!-- Time Column + Day Columns Header -->
+    <!-- Coluna de horários + Cabeçalhos dos dias -->
     <div class="week-header">
       <div class="time-column-header"></div>
       <div
@@ -15,9 +15,9 @@
       </div>
     </div>
 
-    <!-- Time Grid -->
+    <!-- Grade de horários -->
     <div class="week-grid-container">
-      <!-- Time labels column -->
+      <!-- Coluna de rótulos de horário -->
       <div class="time-labels">
         <div
           v-for="hour in hours"
@@ -29,7 +29,7 @@
         </div>
       </div>
 
-      <!-- Days grid -->
+      <!-- Grade de dias -->
       <div class="days-grid">
         <div
           v-for="day in weekDays"
@@ -37,7 +37,7 @@
           class="day-column"
           :style="dayColumnStyle"
         >
-          <!-- Time slots -->
+          <!-- Slots de horário -->
           <div
             v-for="slot in timeSlots"
             :key="slot.time"
@@ -45,11 +45,12 @@
             :style="getTimeSlotStyle(slot)"
             @click="handleSlotClick(day, slot)"
           >
-            <!-- Slot events -->
+            <!-- Eventos do slot -->
             <div
               v-for="event in getSlotEvents(day, slot)"
               :key="event.id"
               class="slot-event"
+              :title="getEventTooltip(event)"
               :class="{
                 'appointment': event.type === 'appointment',
                 'block': event.type === 'block',
@@ -282,6 +283,61 @@ export default {
       return 'Agendamento';
     };
 
+    const getEventTooltip = (event) => {
+      const parts = [];
+
+      if (event.type === 'block') {
+        parts.push('Bloqueio');
+        if (event.data.motivo) {
+          parts.push(event.data.motivo);
+        }
+        if (event.data.data_inicio) {
+          const start = formatTime(event.data.data_inicio);
+          const end = event.data.data_fim ? formatTime(event.data.data_fim) : '';
+          parts.push(end ? `${start} - ${end}` : start);
+        }
+        if (event.data.dia_inteiro) {
+          parts.push('Dia inteiro');
+        }
+      } else {
+        const apt = event.data;
+
+        // Título ou serviço
+        const title = apt.titulo || apt._service?.nome_servico || 'Agendamento';
+        parts.push(title);
+
+        // Horário
+        if (apt.data_inicio) {
+          const start = formatTime(apt.data_inicio);
+          const end = apt.data_fim ? formatTime(apt.data_fim) : '';
+          parts.push(end ? `${start} - ${end}` : start);
+        }
+
+        // Cliente
+        const clientName = apt._client?.nome || apt.nome_cliente;
+        if (clientName) {
+          parts.push(`Cliente: ${clientName}`);
+        }
+
+        // Status
+        const statusMap = {
+          pending: 'Pendente',
+          confirmed: 'Confirmado',
+          cancelled: 'Cancelado'
+        };
+        if (apt.status) {
+          parts.push(`Status: ${statusMap[apt.status] || apt.status}`);
+        }
+
+        // Localização
+        if (apt.location) {
+          parts.push(`Local: ${apt.location}`);
+        }
+      }
+
+      return parts.join('\n');
+    };
+
     const getSlotEvents = (day, slot) => {
       const events = [];
       const slotStart = new Date(day.date);
@@ -378,6 +434,7 @@ export default {
       formatHour,
       formatTime,
       getEventTitle,
+      getEventTooltip,
       getSlotEvents,
       handleEventClick,
       handleSlotClick

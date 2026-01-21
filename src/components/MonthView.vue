@@ -1,6 +1,6 @@
 <template>
   <div class="month-view">
-    <!-- Weekday Headers -->
+    <!-- Cabeçalhos dos dias da semana -->
     <div class="weekday-headers">
       <div
         v-for="day in weekDays"
@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <!-- Calendar Grid -->
+    <!-- Grade do calendário -->
     <div class="calendar-grid">
       <div
         v-for="day in calendarDays"
@@ -30,13 +30,14 @@
           {{ day.date.getDate() }}
         </div>
         <div class="day-events">
-          <!-- Appointments -->
+          <!-- Agendamentos -->
           <div
             v-for="appointment in day.appointments"
             :key="appointment.id"
             class="event-item appointment"
             :class="{ cancelled: appointment.status === 'cancelled' }"
             :style="getAppointmentStyle(appointment)"
+            :title="getAppointmentTooltip(appointment)"
             @click.stop="handleAppointmentClick(appointment)"
           >
             <div class="event-indicator" :style="getEventIndicatorStyle(appointment)"></div>
@@ -65,12 +66,13 @@
             </div>
           </div>
 
-          <!-- Blocks -->
+          <!-- Bloqueios -->
           <div
             v-for="block in day.blocks"
             :key="block.id"
             class="event-item block"
             :style="getBlockStyle()"
+            :title="getBlockTooltip(block)"
           >
             <div class="event-indicator block-indicator" :style="getBlockIndicatorStyle()"></div>
             <div class="event-content">
@@ -83,11 +85,12 @@
             </div>
           </div>
 
-          <!-- More indicator -->
+          <!-- Indicador de mais eventos -->
           <div
             v-if="day.totalEvents > 3"
             class="more-events"
             :style="moreEventsStyle"
+            :title="`${day.totalEvents - 3} eventos adicionais`"
           >
             +{{ day.totalEvents - 3 }} mais
           </div>
@@ -279,7 +282,67 @@ export default {
       return 'Agendamento';
     };
 
-    // Event handlers
+    const getAppointmentTooltip = (appointment) => {
+      const parts = [];
+
+      // Título ou serviço
+      const title = appointment.titulo || appointment._service?.nome_servico || 'Agendamento';
+      parts.push(title);
+
+      // Horário
+      if (appointment.data_inicio) {
+        const start = formatTime(appointment.data_inicio);
+        const end = appointment.data_fim ? formatTime(appointment.data_fim) : '';
+        parts.push(end ? `${start} - ${end}` : start);
+      }
+
+      // Cliente
+      const clientName = appointment._client?.nome || appointment.nome_cliente;
+      if (clientName) {
+        parts.push(`Cliente: ${clientName}`);
+      }
+
+      // Status
+      const statusMap = {
+        pending: 'Pendente',
+        confirmed: 'Confirmado',
+        cancelled: 'Cancelado'
+      };
+      if (appointment.status) {
+        parts.push(`Status: ${statusMap[appointment.status] || appointment.status}`);
+      }
+
+      // Localização
+      if (appointment.location) {
+        parts.push(`Local: ${appointment.location}`);
+      }
+
+      return parts.join('\n');
+    };
+
+    const getBlockTooltip = (block) => {
+      const parts = [];
+
+      parts.push('Bloqueio');
+
+      if (block.motivo) {
+        parts.push(block.motivo);
+      }
+
+      if (block.data_inicio) {
+        const start = formatTime(block.data_inicio);
+        const end = block.data_fim ? formatTime(block.data_fim) : '';
+        parts.push(end ? `${start} - ${end}` : start);
+      }
+
+      if (block.dia_inteiro) {
+        parts.push('Dia inteiro');
+      }
+
+      return parts.join('\n');
+    };
+
+    // Handlers de eventos
     const handleAppointmentClick = (appointment) => {
       emit('appointment-click', appointment);
     };
@@ -307,6 +370,8 @@ export default {
       moreEventsStyle,
       formatTime,
       getAppointmentTitle,
+      getAppointmentTooltip,
+      getBlockTooltip,
       handleAppointmentClick,
       handleDayClick
     };

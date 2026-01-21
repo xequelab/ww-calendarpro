@@ -1,6 +1,6 @@
 <template>
   <div class="calendar-pro" :style="containerStyle">
-    <!-- Header Navigation -->
+    <!-- Navegação do cabeçalho -->
     <div class="calendar-header">
       <div class="header-left">
         <button
@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <!-- Calendar Views -->
+    <!-- Visualizações do calendário -->
     <div class="calendar-body">
       <MonthView
         v-if="currentView === 'month'"
