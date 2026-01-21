@@ -127,10 +127,10 @@ export default {
   },
   emits: ['appointment-click', 'empty-slot-click'],
   setup(props, { emit }) {
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
     const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
     const dayName = computed(() => dayNames[props.currentDate.getDay()]);
@@ -138,7 +138,7 @@ export default {
       const month = monthNames[props.currentDate.getMonth()];
       const date = props.currentDate.getDate();
       const year = props.currentDate.getFullYear();
-      return `${month} ${date}, ${year}`;
+      return `${date} de ${month} de ${year}`;
     });
 
     const dateString = computed(() => props.currentDate.toISOString().split('T')[0]);
@@ -287,7 +287,7 @@ export default {
 
     const getEventTitle = (event) => {
       if (event.type === 'block') {
-        return event.data.motivo || 'Blocked';
+        return event.data.motivo || 'Bloqueado';
       }
 
       const apt = event.data;
@@ -295,7 +295,7 @@ export default {
       if (apt._service?.nome_servico) return apt._service.nome_servico;
       if (apt.nome_cliente) return apt.nome_cliente;
       if (apt._client?.nome) return apt._client.nome;
-      return 'Appointment';
+      return 'Agendamento';
     };
 
     const getEventDetails = (event) => {

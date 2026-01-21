@@ -127,7 +127,7 @@ export default {
   },
   emits: ['appointment-click', 'empty-slot-click'],
   setup(props, { emit }) {
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
     // Get start of week (Monday)
     const getStartOfWeek = (date) => {
@@ -271,7 +271,7 @@ export default {
 
     const getEventTitle = (event) => {
       if (event.type === 'block') {
-        return event.data.motivo || 'Blocked';
+        return event.data.motivo || 'Bloqueado';
       }
 
       const apt = event.data;
@@ -279,7 +279,7 @@ export default {
       if (apt._service?.nome_servico) return apt._service.nome_servico;
       if (apt.nome_cliente) return apt.nome_cliente;
       if (apt._client?.nome) return apt._client.nome;
-      return 'Appointment';
+      return 'Agendamento';
     };
 
     const getSlotEvents = (day, slot) => {

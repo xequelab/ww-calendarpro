@@ -78,7 +78,7 @@
                 {{ formatTime(block.data_inicio) }}
               </div>
               <div class="event-title">
-                {{ block.motivo || 'Blocked' }}
+                {{ block.motivo || 'Bloqueado' }}
               </div>
             </div>
           </div>
@@ -89,7 +89,7 @@
             class="more-events"
             :style="moreEventsStyle"
           >
-            +{{ day.totalEvents - 3 }} more
+            +{{ day.totalEvents - 3 }} mais
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default {
   },
   emits: ['appointment-click', 'empty-slot-click'],
   setup(props, { emit }) {
-    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
     const calendarDays = computed(() => {
       const year = props.currentDate.getFullYear();
@@ -276,7 +276,7 @@ export default {
       if (appointment._service?.nome_servico) return appointment._service.nome_servico;
       if (appointment.nome_cliente) return appointment.nome_cliente;
       if (appointment._client?.nome) return appointment._client.nome;
-      return 'Appointment';
+      return 'Agendamento';
     };
 
     // Event handlers

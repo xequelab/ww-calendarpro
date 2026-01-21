@@ -184,8 +184,8 @@ export default {
     const currentPeriodLabel = computed(() => {
       const date = currentDate.value;
       const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
       ];
 
       if (currentView.value === 'month') {
@@ -195,11 +195,11 @@ export default {
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(endOfWeek.getDate() + 6);
 
-        return `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getDate()} - ${
-          startOfWeek.getMonth() !== endOfWeek.getMonth() ? monthNames[endOfWeek.getMonth()] + ' ' : ''
-        }${endOfWeek.getDate()}, ${endOfWeek.getFullYear()}`;
+        return `${startOfWeek.getDate()} de ${monthNames[startOfWeek.getMonth()]} - ${
+          startOfWeek.getMonth() !== endOfWeek.getMonth() ? endOfWeek.getDate() + ' de ' + monthNames[endOfWeek.getMonth()] : endOfWeek.getDate()
+        }, ${endOfWeek.getFullYear()}`;
       } else {
-        return `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        return `${date.getDate()} de ${monthNames[date.getMonth()]} de ${date.getFullYear()}`;
       }
     });
 

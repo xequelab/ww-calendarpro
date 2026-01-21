@@ -202,9 +202,9 @@ export default {
       defaultValue: 'month',
       options: {
         options: [
-          { value: 'month', label: 'Month' },
-          { value: 'week', label: 'Week' },
-          { value: 'day', label: 'Day' }
+          { value: 'month', label: 'Mês' },
+          { value: 'week', label: 'Semana' },
+          { value: 'day', label: 'Dia' }
         ]
       }
     },
@@ -394,7 +394,7 @@ export default {
       },
       type: 'Text',
       section: 'settings',
-      defaultValue: 'Month',
+      defaultValue: 'Mês',
       multiLang: true
     },
     weekLabel: {
@@ -404,7 +404,7 @@ export default {
       },
       type: 'Text',
       section: 'settings',
-      defaultValue: 'Week',
+      defaultValue: 'Semana',
       multiLang: true
     },
     dayLabel: {
@@ -414,7 +414,7 @@ export default {
       },
       type: 'Text',
       section: 'settings',
-      defaultValue: 'Day',
+      defaultValue: 'Dia',
       multiLang: true
     },
     todayLabel: {
@@ -424,7 +424,7 @@ export default {
       },
       type: 'Text',
       section: 'settings',
-      defaultValue: 'Today',
+      defaultValue: 'Hoje',
       multiLang: true
     }
   }
