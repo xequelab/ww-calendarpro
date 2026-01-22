@@ -212,16 +212,10 @@ export default {
       fontWeight: day.isToday ? '700' : '600'
     });
 
-    const timeLabelStyle = computed(() => {
-      const slotsPerHour = 60 / props.timeSlotMinutes;
-      const labelHeight = slotsPerHour * 80; // 80px per slot
-
-      return {
-        fontSize: props.styles.bodyFontSize,
-        color: props.styles.mutedTextColor,
-        height: `${labelHeight}px`
-      };
-    });
+    const timeLabelStyle = computed(() => ({
+      fontSize: props.styles.bodyFontSize,
+      color: props.styles.mutedTextColor
+    }));
 
     const dayColumnStyle = computed(() => ({
       borderRight: `1px solid ${props.styles.borderColor}`
@@ -562,6 +556,7 @@ export default {
 }
 
 .time-label {
+  height: 80px;
   padding: 8px;
   text-align: right;
   display: flex;
