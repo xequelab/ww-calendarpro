@@ -57,10 +57,8 @@
               }"
               :style="getEventStyle(event)"
               @click.stop="handleEventClick(event)"
-              @mouseenter="handleTooltipShow"
-              @mouseleave="handleTooltipHide"
             >
-              <div class="custom-tooltip" v-html="getEventTooltipHTML(event)" ref="tooltip"></div>
+              <div class="custom-tooltip" v-html="getEventTooltipHTML(event)"></div>
               <div class="event-indicator" :style="getEventIndicatorStyle(event)"></div>
               <div class="event-content-week">
                 <div class="event-time-range" :style="eventTextStyle(event)">
@@ -418,25 +416,6 @@ export default {
       return events;
     };
 
-    // Tooltip handlers
-    const handleTooltipShow = (e) => {
-      const tooltip = e.currentTarget.querySelector('.custom-tooltip');
-      if (!tooltip) return;
-
-      const rect = e.currentTarget.getBoundingClientRect();
-      tooltip.style.top = `${rect.top - 8}px`;
-      tooltip.style.left = `${rect.left + rect.width / 2}px`;
-      tooltip.style.transform = 'translate(-50%, -100%)';
-    };
-
-    const handleTooltipHide = (e) => {
-      const tooltip = e.currentTarget.querySelector('.custom-tooltip');
-      if (!tooltip) return;
-      tooltip.style.top = '';
-      tooltip.style.left = '';
-      tooltip.style.transform = '';
-    };
-
     // Event handlers
     const handleEventClick = (event) => {
       if (event.type === 'appointment') {
@@ -476,8 +455,6 @@ export default {
       getEventTitle,
       getEventTooltipHTML,
       getSlotEvents,
-      handleTooltipShow,
-      handleTooltipHide,
       handleEventClick,
       handleSlotClick
     };
@@ -607,10 +584,8 @@ export default {
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  overflow: hidden;
+  overflow: visible;
   height: 80px;
-  min-height: 80px;
-  max-height: 80px;
 
   &:hover {
     background-color: var(--today-highlight-color);
@@ -627,18 +602,15 @@ export default {
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  overflow: visible !important;
   display: flex;
   align-items: flex-start;
   gap: 4px;
   min-width: 0;
   max-width: 100%;
-  z-index: 1;
 
   &:hover {
     transform: translateX(2px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
   }
 
   &.cancelled {
@@ -720,12 +692,15 @@ export default {
 
 // Custom tooltip styles
 .has-tooltip {
-  position: static;
+  position: relative;
 
   .custom-tooltip {
     visibility: hidden;
     opacity: 0;
-    position: fixed;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
     background-color: #1F2937;
     color: white;
     padding: 12px 16px;
@@ -733,16 +708,27 @@ export default {
     font-size: 13px;
     line-height: 1.6;
     white-space: nowrap;
-    z-index: 99999;
+    z-index: 9999;
     pointer-events: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
     min-width: 200px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #1F2937;
+    }
   }
 
   &:hover .custom-tooltip {
     visibility: visible;
     opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
   }
 }
 
