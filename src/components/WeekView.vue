@@ -573,6 +573,7 @@ export default {
 .day-column {
   position: relative;
   overflow: visible;
+  min-width: 0;
 
   &:last-child {
     border-right: none;
@@ -604,6 +605,8 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
 
   &:hover {
     transform: translateX(2px);
