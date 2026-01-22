@@ -470,31 +470,41 @@ export default {
 }
 
 .week-header {
-  display: grid;
-  grid-template-columns: 80px repeat(7, 1fr);
-  gap: 8px;
+  display: flex;
+  gap: 0;
   margin-bottom: 8px;
 
   @media (max-width: 1024px) {
-    grid-template-columns: 60px repeat(7, 1fr);
-    gap: 4px;
+    gap: 0;
   }
 }
 
 .time-column-header {
-  // Empty space for time column
+  width: 80px;
+  flex-shrink: 0;
+
+  @media (max-width: 1024px) {
+    width: 60px;
+  }
 }
 
 .day-header {
+  flex: 1;
   padding: 12px 8px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  margin-right: 8px;
+
+  &:last-child {
+    margin-right: 0;
+  }
 
   @media (max-width: 768px) {
     padding: 8px 4px;
+    margin-right: 4px;
   }
 }
 
