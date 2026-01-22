@@ -365,12 +365,19 @@ export default {
       const slotEnd = new Date(slotStart);
       slotEnd.setMinutes(slotEnd.getMinutes() + props.timeSlotMinutes);
 
+      // Define working hours end boundary
+      const workingHoursEndTime = new Date(day.date);
+      workingHoursEndTime.setHours(props.workingHoursEnd, 0, 0, 0);
+
       // Check appointments
       props.appointments.forEach(apt => {
         if (!apt?.data_inicio) return;
 
         const aptStart = new Date(apt.data_inicio);
         const aptEnd = apt.data_fim ? new Date(apt.data_fim) : new Date(aptStart.getTime() + 30 * 60000);
+
+        // Skip events that start at or after workingHoursEnd
+        if (aptStart >= workingHoursEndTime) return;
 
         // Check if appointment overlaps with this slot
         if (aptStart.toISOString().split('T')[0] === day.dateString) {
@@ -396,6 +403,9 @@ export default {
 
         const blockStart = new Date(block.data_inicio);
         const blockEnd = block.data_fim ? new Date(block.data_fim) : new Date(blockStart.getTime() + 60 * 60000);
+
+        // Skip blocks that start at or after workingHoursEnd
+        if (blockStart >= workingHoursEndTime) return;
 
         // Check if block overlaps with this slot
         if (blockStart.toISOString().split('T')[0] === day.dateString) {
