@@ -223,7 +223,7 @@ export default {
 
     const getTimeSlotStyle = (slot) => ({
       borderBottom: `1px solid ${props.styles.borderColor}`,
-      height: '80px'
+      height: '120px'
     });
 
     const getEventStyle = (event) => {
@@ -556,7 +556,7 @@ export default {
 }
 
 .time-label {
-  height: 80px;
+  height: 120px;
   padding: 8px;
   text-align: right;
   display: flex;
@@ -597,7 +597,7 @@ export default {
   cursor: pointer;
   transition: background-color 0.2s ease;
   overflow: visible;
-  min-height: 80px;
+  min-height: 120px;
   padding: 4px;
   display: flex;
   flex-direction: column;
