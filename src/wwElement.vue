@@ -167,10 +167,23 @@ export default {
       defaultValue: new Date().toISOString()
     });
 
-    // Computed properties
-    const workingHoursStart = computed(() => props.content.workingHoursStart ?? 6);
-    const workingHoursEnd = computed(() => props.content.workingHoursEnd ?? 22);
-    const timeSlotMinutes = computed(() => props.content.timeSlotMinutes ?? 30);
+    // Computed properties with validation
+    const workingHoursStart = computed(() => {
+      const value = props.content.workingHoursStart ?? 6;
+      return Math.max(0, Math.min(23, Math.floor(value)));
+    });
+
+    const workingHoursEnd = computed(() => {
+      const value = props.content.workingHoursEnd ?? 22;
+      const validated = Math.max(0, Math.min(23, Math.floor(value)));
+      // Ensure end is greater than start
+      return Math.max(validated, workingHoursStart.value + 1);
+    });
+
+    const timeSlotMinutes = computed(() => {
+      const value = props.content.timeSlotMinutes ?? 30;
+      return Math.max(15, Math.min(120, Math.floor(value)));
+    });
 
     const todayButtonText = computed(() => {
       return wwLib.wwLang.getText(props.content.todayLabel);
