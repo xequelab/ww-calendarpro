@@ -586,6 +586,8 @@ export default {
   transition: background-color 0.2s ease;
   overflow: visible;
   height: 80px;
+  min-height: 80px;
+  max-height: 80px;
 
   &:hover {
     background-color: var(--today-highlight-color);
@@ -598,7 +600,7 @@ export default {
 
 .slot-event {
   padding: 4px 6px;
-  margin: 4px;
+  margin: 2px 4px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
@@ -606,7 +608,7 @@ export default {
   align-items: flex-start;
   gap: 4px;
   min-width: 0;
-  max-width: 100%;
+  max-width: calc(100% - 8px);
 
   &:hover {
     transform: translateX(2px);
