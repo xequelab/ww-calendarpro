@@ -515,21 +515,22 @@ export default {
 }
 
 .week-grid-container {
-  display: grid;
-  grid-template-columns: 80px 1fr;
+  display: flex;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: visible;
   background-color: var(--background-color);
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 60px 1fr;
-  }
 }
 
 .time-labels {
+  width: 80px;
+  flex-shrink: 0;
   border-right: 1px solid var(--border-color);
   background-color: var(--background-color);
+
+  @media (max-width: 1024px) {
+    width: 60px;
+  }
 }
 
 .time-label {
@@ -556,6 +557,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   overflow: visible;
+  flex: 1;
 }
 
 .day-column {
