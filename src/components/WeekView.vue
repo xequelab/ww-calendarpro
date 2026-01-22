@@ -584,9 +584,9 @@ export default {
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow: visible;
+  height: 80px;
+  max-height: 80px;
 
   &:hover {
     background-color: var(--today-highlight-color);
