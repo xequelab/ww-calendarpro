@@ -169,7 +169,7 @@ export default {
 
     const hours = computed(() => {
       const hrs = [];
-      for (let h = props.workingHoursStart; h < props.workingHoursEnd; h++) {
+      for (let h = props.workingHoursStart; h <= props.workingHoursEnd; h++) {
         hrs.push(h);
       }
       return hrs;
