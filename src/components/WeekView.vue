@@ -45,43 +45,45 @@
             :style="getTimeSlotStyle(slot)"
             @click="handleSlotClick(day, slot)"
           >
-            <!-- Eventos do slot -->
-            <div
-              v-for="event in getSlotEvents(day, slot)"
-              :key="event.id"
-              class="slot-event has-tooltip"
-              :class="{
-                'appointment': event.type === 'appointment',
-                'block': event.type === 'block',
-                'cancelled': event.type === 'appointment' && event.data.status === 'cancelled'
-              }"
-              :style="getEventStyle(event)"
-              @click.stop="handleEventClick(event)"
-            >
-              <div class="custom-tooltip" v-html="getEventTooltipHTML(event)"></div>
-              <div class="event-indicator" :style="getEventIndicatorStyle(event)"></div>
-              <div class="event-content-week">
-                <div class="event-time-range" :style="eventTextStyle(event)">
-                  {{ formatTime(event.data.data_inicio) }}
-                </div>
-                <div class="event-title" :style="eventTextStyle(event)">
-                  {{ getEventTitle(event) }}
-                </div>
-                <div v-if="event.type === 'appointment'" class="event-status">
-                  <div v-if="event.data.status === 'pending'" class="status-badge pending">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                    </svg>
+            <div class="slot-events-wrapper">
+              <!-- Eventos do slot -->
+              <div
+                v-for="event in getSlotEvents(day, slot)"
+                :key="event.id"
+                class="slot-event has-tooltip"
+                :class="{
+                  'appointment': event.type === 'appointment',
+                  'block': event.type === 'block',
+                  'cancelled': event.type === 'appointment' && event.data.status === 'cancelled'
+                }"
+                :style="getEventStyle(event)"
+                @click.stop="handleEventClick(event)"
+              >
+                <div class="custom-tooltip" v-html="getEventTooltipHTML(event)"></div>
+                <div class="event-indicator" :style="getEventIndicatorStyle(event)"></div>
+                <div class="event-content-week">
+                  <div class="event-time-range" :style="eventTextStyle(event)">
+                    {{ formatTime(event.data.data_inicio) }}
                   </div>
-                  <div v-else-if="event.data.status === 'confirmed'" class="status-badge confirmed">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 5L4 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                  <div class="event-title" :style="eventTextStyle(event)">
+                    {{ getEventTitle(event) }}
                   </div>
-                  <div v-else-if="event.data.status === 'cancelled'" class="status-badge cancelled">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
+                  <div v-if="event.type === 'appointment'" class="event-status">
+                    <div v-if="event.data.status === 'pending'" class="status-badge pending">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                      </svg>
+                    </div>
+                    <div v-else-if="event.data.status === 'confirmed'" class="status-badge confirmed">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <path d="M2 5L4 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    <div v-else-if="event.data.status === 'cancelled'" class="status-badge cancelled">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <path d="M2 2L8 8M8 2L2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -584,7 +586,7 @@ export default {
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  overflow: visible;
+  overflow: hidden;
   height: 80px;
   min-height: 80px;
   max-height: 80px;
@@ -596,6 +598,16 @@ export default {
   &:last-child {
     border-bottom: none;
   }
+}
+
+.slot-events-wrapper {
+  position: relative;
+  height: 100%;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0;
 }
 
 .slot-event {
