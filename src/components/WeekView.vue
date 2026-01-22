@@ -572,7 +572,7 @@ export default {
 
 .day-column {
   position: relative;
-  overflow: visible;
+  overflow: visible !important;
   min-width: 0;
 
   &:last-child {
@@ -584,8 +584,9 @@ export default {
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  overflow: visible;
+  overflow: hidden;
   height: 80px;
+  min-height: 80px;
   max-height: 80px;
 
   &:hover {
@@ -603,16 +604,18 @@ export default {
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  overflow: visible;
+  overflow: visible !important;
   display: flex;
   align-items: flex-start;
   gap: 4px;
   min-width: 0;
   max-width: 100%;
+  z-index: 1;
 
   &:hover {
     transform: translateX(2px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
   }
 
   &.cancelled {
@@ -695,6 +698,7 @@ export default {
 // Custom tooltip styles
 .has-tooltip {
   position: relative;
+  overflow: visible !important;
 
   .custom-tooltip {
     visibility: hidden;
@@ -710,7 +714,7 @@ export default {
     font-size: 13px;
     line-height: 1.6;
     white-space: nowrap;
-    z-index: 9999;
+    z-index: 99999;
     pointer-events: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: opacity 0.2s ease, transform 0.2s ease;
