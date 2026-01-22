@@ -586,10 +586,11 @@ export default {
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  overflow: hidden;
-  height: 80px;
+  overflow: visible;
   min-height: 80px;
-  max-height: 80px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     background-color: var(--today-highlight-color);
@@ -601,29 +602,25 @@ export default {
 }
 
 .slot-events-wrapper {
-  position: relative;
-  height: 100%;
-  overflow: visible;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 2px 0;
+  gap: 4px;
+  flex: 1;
+  overflow: visible;
 }
 
 .slot-event {
   padding: 4px 6px;
-  margin: 2px 4px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 4px;
-  min-width: 0;
-  max-width: calc(100% - 8px);
+  gap: 6px;
+  font-size: 12px;
 
   &:hover {
-    transform: translateX(2px);
+    transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
@@ -633,7 +630,8 @@ export default {
 
   @media (max-width: 768px) {
     padding: 3px 4px;
-    margin: 2px;
+    font-size: 11px;
+    gap: 4px;
   }
 }
 
